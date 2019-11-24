@@ -5,10 +5,7 @@ const score = document.querySelector('.score'),
       music = document.createElement('audio');
       
 car.classList.add('car');
-
-start.addEventListener('click', startGame);
-document.addEventListener('keydown', startRun);
-document.addEventListener('keyup', stopRun);
+let topScore = localStorage.getItem('topScore');
 
 const keys ={
     ArrowUp: false,
@@ -21,7 +18,8 @@ const setting ={
     start: false,
     score: 0,
     speed: 3,
-    traffic: 3
+    traffic: 3,
+    a: 0
 };
 
 function getQuantityElements(heightElement){
@@ -29,6 +27,23 @@ function getQuantityElements(heightElement){
 }
 
 function startGame(){
+
+    if(event.target.classList.contains('start')){
+        return;
+    }
+    if(event.target.classList.contains('easy')){
+        setting.speed=3;
+        setting.traffic=3;
+    }
+    if(event.target.classList.contains('middle')){
+        setting.speed=5;
+        setting.traffic=3;
+    }
+    if(event.target.classList.contains('hard')){
+        setting.speed=6;
+        setting.traffic=2;
+    }
+
     start.classList.add('hide');
     gameArea.innerHTML='';
 
@@ -54,9 +69,9 @@ function startGame(){
     setting.score=0;
     setting.start=true;
     gameArea.appendChild(car);
-    music.setAttribute('autoplay', true);
-    music.setAttribute('src', './audio.mp3');
-    gameArea.appendChild(music);
+    // music.setAttribute('autoplay', true);
+    // music.setAttribute('src', './audio.mp3');
+    // gameArea.appendChild(music);
     car.style.left = gameArea.offsetWidth/2-car.offsetWidth/2;
     car.style.top = 'auto';
     car.style.bottom = '10px';
@@ -66,8 +81,18 @@ function startGame(){
 }
 
 function playGame(){
+    if(setting.score>2000 && setting.a===0){
+        setting.a++;
+        setting.speed+=2;
+    }else if (setting.score>5000 && setting.a===1){
+        setting.speed+=2;
+        setting.a++;
+    }else if (setting.score>10000 && setting.a===2){
+        setting.speed+=2;
+        setting.a++;
+    }
     setting.score+=setting.speed;
-    score.innerHTML ="Score<br>" + setting.score;
+    score.innerHTML ="Record: " + topScore + "<br>Score: " + setting.score;
     moveRoad();
     moveEnemy();
     if (setting.start){
@@ -130,6 +155,9 @@ function moveEnemy(){
             carRect.left+10 <= enemyRect.right &&
             carRect.bottom-20 >= enemyRect.top) {
                 setting.start=false;
+                if(topScore<setting.score){
+                    localStorage.setItem('topScore', setting.score);
+                }
                 start.classList.remove('hide');
                 start.style.top = score.offsetHeight;
         }
@@ -138,8 +166,14 @@ function moveEnemy(){
         item.style.top=item.y +'px';
 
         if(item.y >= gameArea.offsetHeight){
+            let enemyImg =Math.floor(Math.random()*(4-1))+1;
             item.y=-100*setting.traffic;
             item.style.left=Math.floor(Math.random()*(gameArea.offsetWidth-50))+'px';
+            item.style.background=`transparent url(./image/enemy${enemyImg}.png) center / cover no-repeat`;
         }
     });
 }
+
+start.addEventListener('click', startGame);
+document.addEventListener('keydown', startRun);
+document.addEventListener('keyup', stopRun);
